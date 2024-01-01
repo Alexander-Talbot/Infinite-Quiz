@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Quiz</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #111111;
+    text-align: center;
+}
+
+.quiz-container {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #4CAF50;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.score, .streak {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score, .streak {
+    background-color: #2196F3;
+    color: white;
+    border: 2px solid #1565C0;
+    border-radius: 8px;
+    padding: 10px;
+    margin: 5px;
+}
+
+.score span, .streak span {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.score::before, .streak::before {
+    content: "\2022";
+    font-size: 24px;
+    margin-right: 5px;
+}
+
+.score::before {
+    color: #FFD700; /* Gold color for score */
+}
+
+.streak::before {
+    color: #FF6347; /* Tomato color for streak */
+}
+
+.quiz-card {
+    background-color: #4CAF50;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.question {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.option {
+    background-color: #2196F3;
+    color: white;
+    border: 1px solid #2196F3;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: left;
+    margin: 5px;
+}
+
+.option:hover {
+    background-color: #1565C0;
+}
+
+</style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <div class="header">
+            <div class="score">Score: <span id="score">0</span></div>
+            <div class="streak">Streak: <span id="streak">0</span></div>
+        </div>
+        <div class="quiz-card">
+            <div class="question">What is the meaning of life?</div>
+            <div class="options">
+                <div class="option">42</div>
+                <div class="option">42</div>
+                <div class="option">42</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+    <script>
+        var batch_index = 0;
+        var question_batch = [];
+        var batch_responses = [];
+        var totalAnswers = 0;
+        var correctAnswers = 0;
+        var streak = 0;
+
+        const user_id = 0;
+        const batch_size = 20;
+
+        // user is offline, see if they have offline questions they can answer
+        if (!navigator.onLine) {
+            // load data from local storage
+            if (localStorage.getItem("offline_batch") !== null){
+                alert("loading offline batch...");
+                // parse the data from local storage and store in the question_batch array
+                // for (question in offline_batch.split(",")):
+
+            } else {
+                alert("No questions available, please connect to the web to receive more personalized questions.")
+            }
+        } else {
+            if (localStorage.getItem("offline_batch") == null){
+                // request a batch of 500 questions
+                // alert("Downloading an offline batch...");
+                const requestData = {
+                    user_id: 0,
+                    batch_size: 500
+                };
+
+                fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                })
+                .then(response => response.json())
+                .then(result => {
+                    // save the offline batch to localstorage.
+                   localStorage.setItem("offline_batch", JSON.stringify(result.data));
+                    alert("offline batch saved.")
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+
+        }
+
+        function uploadResponses() {
+
+            const requestData = {
+                    user_id: user_id,
+                    batch_questions: question_batch,
+                    batch_responses: batch_responses
+            };
+
+            // alert(user_id);
+
+            fetch('/api/log', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData),
+            })
+
+        }
+
+        function handleOptionClick(option) {
+            // update the score and streak
+            if ((question_batch.length > 0) & (batch_index<question_batch.length)) {
+                totalAnswers++;
+                if (question_batch[batch_index]['answer'] == option.optionIndex) {
+                    streak++;
+                    correctAnswers++;
+                } else {
+                    // alert(question_batch[batch_index]['answer']);
+                    streak = 0;
+                }
+                document.getElementById('streak').textContent = streak;
+                document.getElementById('score').textContent = Math.floor((correctAnswers/totalAnswers)/100)*100;
+            } else {
+                  //alert("No question found for response.");
+            }
+
+            // log the response
+            batch_responses.push(option.optionIndex);
+
+            // check if there are any questions left in the current batch
+
+            if (batch_index < question_batch.length) {
+                // Display the next question and options from the current batch
+                displayQuestionAndOptions(question_batch[batch_index]);
+                batch_index++;
+            } else {
+
+                // upload the completed batch
+                console.log("uploading batch...");
+                uploadResponses();
+
+                // request a new batch
+                const requestData = {
+                    user_id: user_id,
+                    batch_size: batch_size
+                };
+
+                fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData),
+                })
+                .then(response => response.json())
+                .then(result => {
+                    // update the score or display the next question.
+                    question_batch = result.data;
+                    // Display the first question and options from the new batch of questions.
+                    batch_index = 0;
+                    batch_responses = [];
+                    displayQuestionAndOptions(question_batch[batch_index]);
+                    batch_index++;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+
+        function displayQuestionAndOptions(questionData) {
+
+            // Update the question text
+            const questionElement = document.querySelector('.question');
+            questionElement.textContent = questionData.question;
+            // alert()
+            // Update the options
+            const optionsContainer = document.querySelector('.options');
+            optionsContainer.innerHTML = '';
+
+            questionData.responses.forEach((optionText, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.optionIndex = index;
+                optionElement.className = 'option';
+                optionElement.textContent = `${optionText}`;
+                optionElement.addEventListener('click', () => {
+                    handleOptionClick(optionElement);
+                });
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+
+        // new user experience
+        if (question_batch.length == 0) {
+            batch_index = 0;
+            batch_responses = [];
+            displayQuestionAndOptions({'question':'Have you told your friends about this game?', 'responses':['yes','no'], answer:0});
+        }
+    </script>
+</html>
