@@ -4,7 +4,7 @@ from neo4j import GraphDatabase
 app = Flask(__name__)
 
 # Configure Neo4j connection
-uri = "neo4j+s://38f0f39c.databases.neo4j.io"  # Replace with your Neo4j database URI
+uri = "neo4j://38f0f39c.databases.neo4j.io"  # Replace with your Neo4j database URI
 username = "neo4j"  # Replace with your Neo4j username
 password = "b4NTFDl3gzs6T7Ut7ZD0ntPKdpUyzs1_DR-x4FeuwPA"  # Replace with your Neo4j password
 
