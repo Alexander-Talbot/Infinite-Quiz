@@ -4,7 +4,7 @@ from neo4j import GraphDatabase
 app = Flask(__name__)
 
 # Configure Neo4j connection
-uri = "neo4j+ssc://38f0f39c.databases.neo4j.io"
+uri = "neo4j+s://38f0f39c.databases.neo4j.io"
 username = "neo4j"
 password = "b4NTFDl3gzs6T7Ut7ZD0ntPKdpUyzs1_DR-x4FeuwPA"
 
@@ -43,7 +43,7 @@ def log_responses():
         question = batch_questions[n]['question']
         user_id = 123
 
-        print(user_id, response, question)
+        # print(user_id, response, question)
 
         question_response_query = """
         MATCH (q:Question {Question:$question})<-[:TO]-(r:Response {Response:$response}),(u:User {user_id:$user_id})
@@ -86,12 +86,10 @@ def query_neo4j():
 
     try:
         result = neo4j_driver.run_query(query, params={'batch_size': batch_size})
-        # print(len(result))
-        # print(result[0])
         return jsonify({"data": result}), 200
     except Exception as e:
-        print("Error " + str(e))
-        return jsonify({"error": str(e)}), 500
+        print("Failed to run query " + str(e))
+        return jsonify({"Failed to run query ": str(e)}), 500
 
 
 if __name__ == '__main__':

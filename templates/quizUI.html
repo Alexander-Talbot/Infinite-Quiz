@@ -13,12 +13,17 @@ body {
     padding: 0;
     background: #111111;
     text-align: center;
+    height:100%;
 }
 
 .quiz-container {
-    max-width: 400px;
-    margin: 20px auto;
+    margin: auto;
     padding: 20px;
+    height: 100%; /* Set quiz-container height to 100% */
+    box-sizing: border-box; /* Include padding in the height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .header {
@@ -70,6 +75,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
+    height:75%;
 }
 
 .question {
@@ -102,10 +108,9 @@ body {
 </style>
 </head>
 <body>
-
     <div class="quiz-container">
         <div class="header">
-            <div class="score">Score: <span id="score">0</span></div>
+            <div class="score">Score: <span id="score">0%</span></div>
             <div class="streak">Streak: <span id="streak">0</span></div>
         </div>
         <div class="quiz-card">
@@ -117,7 +122,6 @@ body {
             </div>
         </div>
     </div>
-
 </body>
 
     <script>
@@ -137,6 +141,7 @@ body {
             if (localStorage.getItem("offline_batch") !== null){
                 alert("loading offline batch...");
                 // parse the data from local storage and store in the question_batch array
+                // offline_batch = JSON.loads(localStorage.getItem("offline_batch"))
                 // for (question in offline_batch.split(",")):
 
             } else {
@@ -196,14 +201,16 @@ body {
             if ((question_batch.length > 0) & (batch_index<question_batch.length)) {
                 totalAnswers++;
                 if (question_batch[batch_index]['answer'] == option.optionIndex) {
+                    alert("Correct!");
                     streak++;
                     correctAnswers++;
                 } else {
-                    // alert(question_batch[batch_index]['answer']);
+                    alert(question_batch[batch_index]['answer']);
                     streak = 0;
                 }
                 document.getElementById('streak').textContent = streak;
-                document.getElementById('score').textContent = Math.floor((correctAnswers/totalAnswers)/100)*100;
+                document.getElementById('score').textContent =
+                    (correctAnswers/totalAnswers*100).toFixed(1) + "%";
             } else {
                   //alert("No question found for response.");
             }
@@ -214,16 +221,20 @@ body {
             // check if there are any questions left in the current batch
 
             if (batch_index < question_batch.length) {
-                // Display the next question and options from the current batch
-                displayQuestionAndOptions(question_batch[batch_index]);
+                // Display the next question and options from the current batch.
                 batch_index++;
+                displayQuestionAndOptions(question_batch[batch_index]);
             } else {
-
                 // upload the completed batch
                 console.log("uploading batch...");
                 uploadResponses();
+                getQuestionBatch(123,20);
 
-                // request a new batch
+            }
+        }
+
+        function getQuestionBatch(user_id, batch_size) {
+            // request a new batch
                 const requestData = {
                     user_id: user_id,
                     batch_size: batch_size
@@ -244,12 +255,10 @@ body {
                     batch_index = 0;
                     batch_responses = [];
                     displayQuestionAndOptions(question_batch[batch_index]);
-                    batch_index++;
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
-            }
         }
 
         function displayQuestionAndOptions(questionData) {
@@ -274,12 +283,12 @@ body {
             });
         }
 
-
         // new user experience
         if (question_batch.length == 0) {
             batch_index = 0;
             batch_responses = [];
-            displayQuestionAndOptions({'question':'Have you told your friends about this game?', 'responses':['yes','no'], answer:0});
+            // request the initial batch
+            getQuestionBatch(123,20);
         }
     </script>
 </html>
