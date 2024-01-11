@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Infinite Quiz</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <style>
 
 body {
@@ -31,18 +31,31 @@ body {
     justify-content: space-between;
     padding: 15px;
     margin-bottom: 20px;
-    background-color: #4CAF50;
+    background-color: #CAEFD1;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.score, .streak {
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #e0e0e0; /* Light gray for header background */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.score,
+.streak {
+    width: 50%; /* Set width to 50% each */
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-.score, .streak {
+.score,
+.streak {
     background-color: #2196F3;
     color: white;
     border: 2px solid #1565C0;
@@ -51,13 +64,16 @@ body {
     margin: 5px;
 }
 
-.score span, .streak span {
+.score span,
+.streak span {
     font-size: 18px;
     font-weight: bold;
+    flex-grow: 1; /* Make text fill the available space */
 }
 
-.score::before, .streak::before {
-    content: "\2022";
+.score::before,
+.streak::before {
+    content: "\221E";
     font-size: 24px;
     margin-right: 5px;
 }
@@ -69,9 +85,8 @@ body {
 .streak::before {
     color: #FF6347; /* Tomato color for streak */
 }
-
 .quiz-card {
-    background-color: #4CAF50;
+    background-color: #CAEFD1;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
@@ -145,7 +160,7 @@ body {
                 // for (question in offline_batch.split(",")):
 
             } else {
-                alert("No questions available, please connect to the web to receive more personalized questions.")
+                alert("No questions available, please connect to the web to receive more personalized questions.");
             }
         } else {
             if (localStorage.getItem("offline_batch") == null){
@@ -175,6 +190,10 @@ body {
             }
 
         }
+
+        window.addEventListener('beforeunload', function (event) {
+            // alert(goodbye);
+        });
 
         function uploadResponses() {
 

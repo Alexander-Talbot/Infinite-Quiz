@@ -1,17 +1,13 @@
 from flask import Flask, request, jsonify, render_template
 from neo4j import GraphDatabase
+import creds
 
 app = Flask(__name__)
-
-# Configure Neo4j connection
-uri = "neo4j+s://38f0f39c.databases.neo4j.io"
-username = "neo4j"
-password = "b4NTFDl3gzs6T7Ut7ZD0ntPKdpUyzs1_DR-x4FeuwPA"
 
 
 class Neo4jDriver:
     def __init__(self):
-        self._driver = GraphDatabase.driver(uri, auth=(username, password))
+        self._driver = GraphDatabase.driver(creds.uri, auth=(creds.username, creds.password))
 
     def close(self):
         self._driver.close()

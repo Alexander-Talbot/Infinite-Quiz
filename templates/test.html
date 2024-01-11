@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Game</title>
+</head>
+<body>
+
+<div id="question-container"></div>
+<button id="next-button" onclick="nextQuestion()">Next Question</button>
+
+<script>
+// Mock data for questions. Replace this with actual data from your server.
+const questionsData = [
+  { id: 1, question: "Question 1", options: ["Option A", "Option B", "Option C", "Option D"], correctAnswer: 2 },
+  // ... Repeat for 20 questions
+];
+
+let currentState = {
+  currentQuestionIndex: 0,
+  selectedAnswer: null,
+  score: 0
+};
+
+function startQuiz() {
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const questionContainer = document.getElementById('question-container');
+  questionContainer.innerHTML = '';
+
+  const currentQuestion = questionsData[currentState.currentQuestionIndex];
+
+  const questionElement = document.createElement('div');
+  questionElement.innerHTML = `<p>${currentQuestion.question}</p>`;
+
+  currentQuestion.options.forEach((option, index) => {
+    const optionButton = document.createElement('button');
+    optionButton.innerText = option;
+    optionButton.onclick = () => selectAnswer(index);
+    questionElement.appendChild(optionButton);
+  });
+
+  questionContainer.appendChild(questionElement);
+}
+
+function selectAnswer(answerIndex) {
+  currentState.selectedAnswer = answerIndex;
+}
+
+function nextQuestion() {
+  const currentQuestion = questionsData[currentState.currentQuestionIndex];
+
+  // Check if an answer is selected
+  if (currentState.selectedAnswer !== null) {
+    // Check if the selected answer is correct
+    if (currentState.selectedAnswer === currentQuestion.correctAnswer) {
+      currentState.score++;
+    }
+
+    // Move to the next question
+    currentState.currentQuestionIndex++;
+
+    // Check if all questions have been answered
+    if (currentState.currentQuestionIndex < questionsData.length) {
+      currentState.selectedAnswer = null;
+      renderQuestion();
+    } else {
+      // Quiz completed
+      alert(`Quiz completed! Your score is ${currentState.score}`);
+    }
+  } else {
+    alert("Please select an answer before moving to the next question.");
+  }
+}
+
+// Start the quiz when the page loads
+startQuiz();
+</script>
+
+</body>
+</html>
